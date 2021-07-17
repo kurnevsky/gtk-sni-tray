@@ -315,11 +315,19 @@ buildTray TrayParams { trayHost = Host
               popupItemForMenu menu =
                 Gtk.menuPopupAtWidget menu image
                    GravitySouthWest GravityNorthWest Nothing
-              popupItemMenu =
-                maybe activateItem popupItemForMenu maybeMenu >> return False
-              activateItem = void $ IC.activate client serviceName servicePath 0 0
+              activate f = void $ f client serviceName servicePath 0 0
+              activateItem = activate IC.activate
+              secondaryActivateItem = activate IC.secondaryActivate
 
-          _ <- Gtk.onWidgetButtonPressEvent button $ const popupItemMenu
+          _ <- Gtk.onWidgetButtonPressEvent button $ \event -> do
+            number <- Gdk.getEventButtonButton event
+            putStrLn $ show number
+            case number of
+              1 -> activateItem
+              2 -> secondaryActivateItem
+              3 -> maybe secondaryActivateItem popupItemForMenu maybeMenu
+              _ -> return ()
+            return False
           _ <- Gtk.onWidgetScrollEvent button $ \event -> do
             direction <- getEventScrollDirection event
             let direction' = case direction of
