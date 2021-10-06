@@ -215,12 +215,14 @@ buildTray Host
   let getContext name = Map.lookup name <$> MV.readMVar contextMap
       showInfo info = show info { iconPixmaps = [] }
 
-      getSize rectangle =
-        case orientation of
+      getSize rectangle = do
+        x <- case orientation of
           Gtk.OrientationHorizontal ->
             Gdk.getRectangleHeight rectangle
           _ ->
             Gdk.getRectangleWidth rectangle
+        putStrLn ("??? " ++ show x)
+        return x
 
       getInfoAttr fn def name = maybe def fn . Map.lookup name <$> getInfoMap
 
@@ -228,7 +230,7 @@ buildTray Host
       getInfo = getInfoAttr id
 
       updateIconFromInfo info@ItemInfo { itemServiceName = name } =
-        getContext name >>= updateIcon
+        putStrLn ("!!! " ++ show info) >> (getContext name >>= updateIcon)
         where updateIcon Nothing = updateHandler ItemAdded info
               updateIcon (Just ItemContext { contextImage = image } ) = do
                 size <- case imageSize of
